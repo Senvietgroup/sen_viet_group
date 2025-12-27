@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng Ký Nhân Viên - Sen Viet Group</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- HTML5-QRCode Library -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+    <style>
+        body { font-family: 'Roboto', sans-serif; background-color: #f0f2f5; position: relative; overflow-x: hidden; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #fff; /* White spinner for better contrast on colored buttons */
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* Animations */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up {
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+
+        /* Input Focus Effects */
+        .input-group:focus-within label {
+            color: #059669; /* Green-600 */
+        }
+        .input-group:focus-within i {
+            color: #059669; /* Green-600 */
+        }
+        input:focus, select:focus, textarea:focus {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(5, 150, 105, 0.1), 0 2px 4px -1px rgba(5, 150, 105, 0.06);
+        }
+
+        /* Button Hover Effects */
+        .btn-hover-effect {
+            transition: all 0.3s ease;
+        }
+        .btn-hover-effect:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .btn-hover-effect:active {
+            transform: translateY(0);
+        }
+
+        /* Gradient Brand Color */
+        .bg-brand-gradient {
+            /* Thay đổi mã màu ở đây để khớp chính xác với Logo của bạn */
+            background: linear-gradient(135deg, #059669 0%, #0d9488 100%); /* Emerald to Teal */
+        }
+        
+        /* Toast notification */
+        #toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 50;
+        }
+        .preview-box {
+            position: relative;
+            aspect-ratio: 8/5;
+            background-color: #f9fafb;
+            border: 2px dashed #d1d5db;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .preview-box:hover {
+            border-color: #059669;
+            background-color: #ecfdf5;
+        }
+        .preview-box img { width: 100%; height: 100%; object-fit: cover; }
+        .preview-label { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.6); color: white; padding: 4px; font-size: 0.75rem; text-align: center; }
+        
+        select { -webkit-appearance: none; -moz-appearance: none; appearance: none; }
+        input[type="date"] { appearance: none; -webkit-appearance: none; position: relative; }
+
+        /* Snow Effect CSS */
+        .snowflake {
+            position: fixed;
+            top: -20px;
+            z-index: 9999;
+            color: #e0f2fe; /* Light blue-ish white */
+            text-shadow: 0 0 2px rgba(0,0,0,0.1);
+            pointer-events: none;
+            user-select: none;
+            cursor: default;
+            animation-name: fall;
+            animation-timing-function: linear;
+        }
+        
+        @keyframes fall {
+            0% { transform: translateY(-20px) rotate(0deg); opacity: 0.8; }
+            100% { transform: translateY(105vh) rotate(360deg); opacity: 0.2; }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-2 sm:p-4">
+
+    <!-- Container for Snowflakes (Created via JS) -->
+    <div id="snow-container"></div>
+
+    <div class="w-full max-w-xl bg-white shadow-2xl rounded-2xl overflow-hidden animate-fade-in-up border border-gray-100 relative z-10">
+        
+        <!-- Header với Gradient và Logo -->
+        <div class="bg-brand-gradient p-6 text-white text-center relative overflow-hidden">
+            <!-- Decorative Circles -->
+            <div class="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 rounded-full bg-white opacity-10 blur-xl"></div>
+            <div class="absolute bottom-0 left-0 -ml-8 -mb-8 w-24 h-24 rounded-full bg-white opacity-10 blur-xl"></div>
+
+            <!-- Logo Container -->
+            <div class="absolute top-4 left-4">
+                <!-- Hãy thay đường dẫn 'logo.png.jpg' bằng URL logo thực tế của bạn -->
+                <img src="logo.png.jpg" 
+                     onerror="this.src='https://placehold.co/100x100?text=Logo+SVG'" 
+                     alt="Sen Viet Group" 
+                     class="h-12 w-12 sm:h-14 sm:w-14 object-contain bg-white rounded-full p-1 shadow-md border-2 border-white/50 backdrop-blur-sm">
+            </div>
+
+            <h1 class="text-2xl sm:text-3xl font-bold uppercase tracking-wide drop-shadow-md mt-2">Đăng Ký Nhân Viên</h1>
+            <p class="text-white/90 text-sm mt-2 font-light">Hệ thống nhận diện Căn cước công dân tự động</p>
+        </div>
+
+        <div class="p-6 space-y-6">
+            
+            <!-- --- QR SECTION --- -->
+            <div class="bg-emerald-50 p-1 rounded-xl border border-emerald-100 shadow-inner">
+                <button onclick="toggleQrScanner()" id="btn-scan-qr" class="w-full flex items-center justify-center p-4 bg-white border border-emerald-200 rounded-lg shadow-sm hover:bg-emerald-50 text-emerald-700 font-bold transition-all duration-300 group">
+                    <div class="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center mr-3 group-hover:bg-emerald-200 transition-colors">
+                        <i class="fa-solid fa-qrcode text-xl"></i>
+                    </div>
+                    <span id="btn-scan-text">Quét QR (Mặt trước / Sau)</span>
+                </button>
+                
+                <!-- QR Scanner Container -->
+                <div id="qr-wrapper" class="hidden mt-3 p-2 bg-white rounded-lg border border-gray-200 shadow-sm">
+                    <div id="qr-reader" class="rounded-lg overflow-hidden bg-black"></div>
+                </div>
+            </div>
+
+            <div class="relative flex py-2 items-center">
+                <div class="flex-grow border-t border-gray-300"></div>
+                <span class="flex-shrink-0 mx-4 text-gray-400 text-xs uppercase font-medium tracking-wider">Hoặc tải ảnh lên</span>
+                <div class="flex-grow border-t border-gray-300"></div>
+            </div>
+
+            <!-- --- PHOTO UPLOAD SECTION (FRONT & BACK) --- -->
+            <div class="grid grid-cols-2 gap-4">
+                <!-- FRONT SIDE -->
+                <div>
+                    <input id="file-front" type="file" accept="image/*" capture="environment" class="hidden" onchange="handleImageUpload(this, 'front')">
+                    <label for="file-front" class="cursor-pointer block group h-full">
+                        <div class="preview-box group-hover:border-emerald-400 h-full" id="preview-box-front">
+                            <div class="text-center text-gray-400 p-2 group-hover:text-emerald-500 transition-colors">
+                                <i class="fa-solid fa-id-card text-4xl mb-2 transition-transform group-hover:scale-110"></i>
+                                <div class="text-xs font-medium">Mặt trước CCCD</div>
+                            </div>
+                            <img id="img-front" class="hidden" src="">
+                            <div id="loading-front" class="absolute inset-0 bg-white/90 hidden flex-col items-center justify-center z-10 backdrop-blur-sm">
+                                <div class="loader mb-2 border-t-emerald-500"></div>
+                                <span class="text-xs text-emerald-600 font-bold animate-pulse">Đang xử lý...</span>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- BACK SIDE -->
+                <div>
+                    <input id="file-back" type="file" accept="image/*" capture="environment" class="hidden" onchange="handleImageUpload(this, 'back')">
+                    <label for="file-back" class="cursor-pointer block group h-full">
+                        <div class="preview-box group-hover:border-emerald-400 h-full" id="preview-box-back">
+                            <div class="text-center text-gray-400 p-2 group-hover:text-emerald-500 transition-colors">
+                                <i class="fa-regular fa-id-card text-4xl mb-2 transition-transform group-hover:scale-110"></i>
+                                <div class="text-xs font-medium">Mặt sau CCCD</div>
+                            </div>
+                            <img id="img-back" class="hidden" src="">
+                            <div id="loading-back" class="absolute inset-0 bg-white/90 hidden flex-col items-center justify-center z-10 backdrop-blur-sm">
+                                <div class="loader mb-2 border-t-emerald-500"></div>
+                                <span class="text-xs text-emerald-600 font-bold animate-pulse">Đang xử lý...</span>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- --- FORM --- -->
+            <form id="employeeForm" onsubmit="submitForm(event)" class="space-y-5 pt-2">
+                
+                <!-- Job Info Section -->
+                <div class="bg-gray-50/80 p-4 rounded-xl border border-gray-200 space-y-4 shadow-sm hover:shadow-md transition-shadow duration-300">
+                    <h3 class="text-xs font-bold text-emerald-700 uppercase border-b border-emerald-100 pb-2 mb-1 flex items-center">
+                        <i class="fa-solid fa-briefcase mr-2"></i> Thông tin công việc
+                    </h3>
+                    
+                    <!-- Company Name -->
+                    <div class="input-group">
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1 transition-colors">Tên công ty</label>
+                        <div class="relative group">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 transition-colors group-hover:text-emerald-500"><i class="fa-solid fa-building"></i></span>
+                            <select id="company" required class="w-full pl-10 p-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm transition-all outline-none cursor-pointer">
+                                <option value="" disabled selected>-- Chọn công ty --</option>
+                                <option value="AAC CHÍNH THỨC">AAC CHÍNH THỨC</option>
+                                <option value="AAC THỜI VỤ">AAC THỜI VỤ</option>
+                                <option value="HS CHÍNH THỨC">HS CHÍNH THỨC</option>
+                                <option value="GOERTEK CHÍNH THỨC">GOERTEK CHÍNH THỨC</option>
+                                <option value="GOERTEK THỜI VỤ">GOERTEK THỜI VỤ</option>
+                                <option value="YUZHAN CHÍNH THỨC">YUZHAN CHÍNH THỨC</option>
+                                <option value="YUZHAN THỜI VỤ">YUZHAN THỜI VỤ</option>
+                                <option value="AUSTONE THỜI VỤ">AUSTONE THỜI VỤ</option>
+                                <option value="VDS THỜI VỤ">VDS THỜI VỤ</option>
+                                <option value="SOHAN THỜI VỤ">SOHAN THỜI VỤ</option>
+                                <option value="LUXSHARE">LUXSHARE</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Supplier -->
+                    <div class="input-group">
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1 transition-colors">Nhà cung ứng</label>
+                        <div class="relative group">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 transition-colors group-hover:text-emerald-500"><i class="fa-solid fa-users"></i></span>
+                            <select id="supplier" required class="w-full pl-10 p-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm transition-all outline-none cursor-pointer">
+                                <option value="" disabled selected>-- Chọn nhà cung ứng --</option>
+                                <option value="Sen Việt">Sen Việt</option>
+                                <option value="Sen Việt 1">Sen Việt 1</option>
+                                <option value="Sen Việt 2">Sen Việt 2</option>
+                                <option value="Sen Việt 3">Sen Việt 3</option>
+                                <option value="Sen Việt 4">Sen Việt 4</option>
+                                <option value="Sen Việt 5">Sen Việt 5</option>
+                                <option value="Sen Việt 6">Sen Việt 6</option>
+                                <option value="Sen Việt 7">Sen Việt 7</option>
+                                <option value="Sen Việt 8">Sen Việt 8</option>
+                                <option value="Sen Việt 9">Sen Việt 9</option>
+                                <option value="Sen Việt 10">Sen Việt 10</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Personal Info Section -->
+                 <div class="input-group">
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1 transition-colors">Họ và tên</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400"><i class="fa-solid fa-user"></i></span>
+                        <input type="text" id="fullname" required class="w-full pl-10 p-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all outline-none" placeholder="NGUYEN VAN A">
+                    </div>
+                </div>
+
+                <!-- Citizen ID -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="input-group">
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1 transition-colors">Số CCCD</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400"><i class="fa-solid fa-id-badge"></i></span>
+                            <input type="text" id="cccd" required class="w-full pl-10 p-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all outline-none" placeholder="0xxxxxxxxxxx">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1 transition-colors">Ngày sinh</label>
+                        <input type="date" id="dob" class="w-full p-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm transition-all outline-none">
+                    </div>
+                </div>
+
+                <!-- Issue Date & Place -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="input-group">
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1 transition-colors">Ngày cấp</label>
+                        <input type="date" id="issueDate" class="w-full p-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm transition-all outline-none">
+                    </div>
+                    <div class="input-group">
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1 transition-colors">Nơi cấp</label>
+                         <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400"><i class="fa-solid fa-building-gov"></i></span>
+                            <input type="text" id="issuePlace" class="w-full pl-10 p-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all outline-none" placeholder="Bộ Công An...">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Address -->
+                <div class="input-group">
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1 transition-colors">Địa chỉ thường trú</label>
+                    <div class="relative">
+                        <span class="absolute top-3 left-3 flex items-center text-gray-400"><i class="fa-solid fa-map-location-dot"></i></span>
+                        <textarea id="address" rows="2" class="w-full pl-10 p-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all outline-none" placeholder="Số nhà, đường, phường/xã..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Phone Number -->
+                <div class="input-group">
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1 transition-colors">Số điện thoại liên hệ</label>
+                    <div class="relative">
+                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400"><i class="fa-solid fa-phone"></i></span>
+                        <input type="tel" id="phone" required class="w-full pl-10 p-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all outline-none" placeholder="09xxxxxxx">
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="grid grid-cols-5 gap-3 mt-8">
+                    <button type="button" onclick="resetPage()" class="col-span-2 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold py-3.5 rounded-xl shadow-sm hover:shadow transition-all duration-300 transform active:scale-95 flex justify-center items-center border border-gray-200">
+                        <i class="fa-solid fa-rotate-right mr-2 transition-transform duration-500 group-hover:rotate-180"></i> NHẬP LẠI
+                    </button>
+                    <button type="submit" id="submitBtn" class="col-span-3 bg-brand-gradient hover:opacity-90 text-white font-bold py-3.5 rounded-xl shadow-lg hover:shadow-emerald-500/30 transition-all duration-300 transform active:scale-95 flex justify-center items-center btn-hover-effect">
+                        <span class="mr-2">GỬI ĐĂNG KÝ</span> <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Footer -->
+        <div class="bg-gray-50 p-4 text-center text-xs text-gray-400 border-t">
+            &copy; 2024 Sen Viet Group. Powered by Google Vision AI.
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <script>
+        // CONFIGURATION
+        const GOOGLE_API_KEY = 'AIzaSyB2JUVRGd-oREdyYyvznfiZ0WAFldr8Mic'; 
+        const N8N_WEBHOOK_URL = 'https://senvietgroup.com/webhook-test/7c94115b-60fe-48e1-b3a9-5c00f00a71a1';
+        
+        // --- SNOW EFFECT LOGIC ---
+        function createSnowflake() {
+            const snowflake = document.createElement('div');
+            snowflake.classList.add('snowflake');
+            snowflake.innerHTML = '❄';
+            
+            // Random horizontal position
+            snowflake.style.left = Math.random() * 100 + 'vw';
+            
+            // Random fall duration between 5s and 10s
+            snowflake.style.animationDuration = Math.random() * 5 + 5 + 's'; 
+            
+            // Random size between 10px and 20px
+            snowflake.style.fontSize = Math.random() * 10 + 10 + 'px';
+            
+            // Random opacity
+            snowflake.style.opacity = Math.random() * 0.5 + 0.3;
+
+            document.getElementById('snow-container').appendChild(snowflake);
+
+            // Remove snowflake after it falls
+            setTimeout(() => {
+                snowflake.remove();
+            }, 10000); // Match max animation duration
+        }
+
+        // Create a snowflake every 300ms
+        setInterval(createSnowflake, 300);
+
+        // --- QR CODE LOGIC ---
+        let html5QrcodeScanner = null;
+        let isScanning = false;
+
+        async function toggleQrScanner() {
+            if (isScanning) {
+                await stopQrScanner();
+            } else {
+                startQrScanner();
+            }
+        }
+
+        async function startQrScanner() {
+            if (isScanning) return; 
+
+            const wrapper = document.getElementById('qr-wrapper');
+            const btnText = document.getElementById('btn-scan-text');
+            
+            wrapper.classList.remove('hidden');
+            btnText.innerText = "Đang mở camera...";
+
+            if (!html5QrcodeScanner) {
+                html5QrcodeScanner = new Html5Qrcode("qr-reader");
+            }
+
+            const config = { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 };
+            
+            try {
+                await html5QrcodeScanner.start(
+                    { facingMode: "environment" }, 
+                    config, 
+                    onScanSuccess,
+                    undefined
+                );
+                isScanning = true;
+                btnText.innerText = "Dừng quét";
+                wrapper.scrollIntoView({ behavior: 'smooth' });
+                
+            } catch (err) {
+                console.error("Camera Error:", err);
+                isScanning = false;
+                wrapper.classList.add('hidden');
+                btnText.innerText = "Quét QR (Mặt trước / Sau)";
+                
+                let msg = "Không thể mở camera.";
+                if (err.name === 'NotReadableError') msg = "Camera đang bận. Hãy tắt các tab/ứng dụng khác dùng camera.";
+                else if (err.name === 'NotAllowedError') msg = "Vui lòng cấp quyền truy cập camera.";
+                
+                showToast(msg, "error");
+                try { await html5QrcodeScanner.clear(); } catch(e) {}
+            }
+        }
+
+        async function stopQrScanner() {
+            if (!html5QrcodeScanner) return;
+            document.getElementById('btn-scan-text').innerText = "Đang dừng...";
+            
+            try {
+                if (html5QrcodeScanner.getState() === 2 || html5QrcodeScanner.getState() === 1) {
+                     await html5QrcodeScanner.stop();
+                }
+                await html5QrcodeScanner.clear();
+            } catch (err) {
+                console.warn("Stop error:", err);
+            } finally {
+                isScanning = false;
+                document.getElementById('qr-wrapper').classList.add('hidden');
+                document.getElementById('btn-scan-text').innerText = "Quét QR (Mặt trước / Sau)";
+                html5QrcodeScanner = null;
+            }
+        }
+
+        function onScanSuccess(decodedText, decodedResult) {
+            stopQrScanner();
+            showToast("Quét QR thành công!", "success");
+            
+            // Format: ID|LegacyID|Name|DOB|Gender|Address|IssueDate
+            try {
+                const parts = decodedText.split('|');
+                if (parts.length >= 6) {
+                    document.getElementById('cccd').value = parts[0] || "";
+                    document.getElementById('fullname').value = parts[2] || "";
+                    
+                    if (parts[3] && parts[3].length === 8) {
+                        document.getElementById('dob').value = formatQrDateToISO(parts[3]);
+                    }
+                    document.getElementById('address').value = parts[5] || "";
+                    
+                    // Issue Date often at index 6
+                    if (parts[6] && parts[6].length === 8) {
+                        document.getElementById('issueDate').value = formatQrDateToISO(parts[6]);
+                    }
+                    
+                    // Auto-fill Issue Place for Chip Cards if QR is valid
+                    document.getElementById('issuePlace').value = "Cục Cảnh sát QLHC về TTXH";
+                } else {
+                     showToast("QR không đúng định dạng CCCD.", "warning");
+                }
+            } catch (e) {
+                console.error("Parse error", e);
+            }
+        }
+
+        // Converts QR date "ddmmyyyy" to "yyyy-mm-dd" for input[type="date"]
+        function formatQrDateToISO(str) {
+            return `${str.substring(4)}-${str.substring(2,4)}-${str.substring(0,2)}`;
+        }
+
+        // Converts OCR/Display date "dd/mm/yyyy" to "yyyy-mm-dd" for input[type="date"]
+        function convertOcrDateToISO(dateStr) {
+            if(!dateStr) return "";
+            const parts = dateStr.split('/');
+            if(parts.length === 3) {
+                // Ensure yyyy-mm-dd
+                return `${parts[2]}-${parts[1]}-${parts[0]}`;
+            }
+            return "";
+        }
+
+        // Converts "yyyy-mm-dd" back to "dd/mm/yyyy" for Webhook payload
+        function formatISOToDisplay(isoStr) {
+            if(!isoStr) return "";
+            const parts = isoStr.split('-');
+            if(parts.length === 3) {
+                return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            }
+            return isoStr;
+        }
+
+        // --- GOOGLE VISION API OCR LOGIC ---
+        
+        function handleImageUpload(input, side) {
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    // UI Updates
+                    const imgEl = document.getElementById(`img-${side}`);
+                    const loadingEl = document.getElementById(`loading-${side}`);
+                    const iconDiv = document.querySelector(`#preview-box-${side} div:first-child`);
+                    
+                    // Show image, hide icon
+                    imgEl.src = e.target.result;
+                    imgEl.classList.remove('hidden');
+                    if(iconDiv) iconDiv.classList.add('hidden');
+                    
+                    // Show loading overlay
+                    loadingEl.classList.remove('hidden');
+                    loadingEl.style.display = 'flex';
+
+                    const base64Content = e.target.result.split(',')[1];
+                    analyzeImageWithVision(base64Content, side);
+                }
+
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function analyzeImageWithVision(base64Image, side) {
+            const url = `https://vision.googleapis.com/v1/images:annotate?key=${GOOGLE_API_KEY}`;
+            const requestBody = {
+                requests: [{
+                    image: { content: base64Image },
+                    features: [{ type: "TEXT_DETECTION" }]
+                }]
+            };
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody)
+                });
+
+                const data = await response.json();
+                document.getElementById(`loading-${side}`).classList.add('hidden');
+                document.getElementById(`loading-${side}`).style.display = 'none';
+
+                if (data.responses && data.responses[0].fullTextAnnotation) {
+                    const fullText = data.responses[0].fullTextAnnotation.text;
+                    console.log(`OCR Result (${side}):`, fullText);
+                    parseOCRData(fullText, side);
+                    showToast(`Đã đọc ${side === 'front' ? 'mặt trước' : 'mặt sau'}!`, "success");
+                } else {
+                    showToast(`Không tìm thấy chữ ở ${side === 'front' ? 'mặt trước' : 'mặt sau'}.`, "warning");
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById(`loading-${side}`).classList.add('hidden');
+                document.getElementById(`loading-${side}`).style.display = 'none';
+                showToast("Lỗi kết nối OCR.", "error");
+            }
+        }
+
+        function parseOCRData(text, side) {
+            const lines = text.split('\n');
+            const lowerText = text.toLowerCase();
+
+            if (side === 'front') {
+                // --- PARSE FRONT SIDE ---
+                let idFound = false;
+                
+                // Aggressive ID search (remove spaces in case OCR adds them: 012 345...)
+                const cleanText = text.replace(/\s/g, '');
+                const idMatch = cleanText.match(/\d{12}/);
+                if (idMatch) {
+                    document.getElementById('cccd').value = idMatch[0];
+                    idFound = true;
+                }
+
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    const lowerLine = line.toLowerCase();
+
+                    // Fallback ID if aggressive search failed (rare)
+                    if (!idFound && (lowerLine.includes("số") || lowerLine.includes("no"))) {
+                        const matches = line.match(/\d{12}/);
+                        if (matches) document.getElementById('cccd').value = matches[0];
+                    }
+
+                    // Name
+                    // Logic: Line after "Họ và tên" OR line that is ALL CAPS and not a header
+                    if (lowerLine.includes("họ và tên") || lowerLine.includes("full name")) {
+                        if (i + 1 < lines.length) {
+                            let potentialName = lines[i+1].trim();
+                            if (potentialName && potentialName === potentialName.toUpperCase() && potentialName.length > 3) {
+                                document.getElementById('fullname').value = potentialName;
+                            }
+                        }
+                    } 
+                    // Fallback Name: Look for uppercase lines that aren't keywords (for Căn Cước new format)
+                    else if (!document.getElementById('fullname').value && 
+                             line === line.toUpperCase() && 
+                             line.length > 5 && 
+                             !line.includes("CỘNG HÒA") && 
+                             !line.includes("ĐỘC LẬP") && 
+                             !line.includes("CĂN CƯỚC") &&
+                             !line.includes("SỐ / NO") &&
+                             !/\d/.test(line)) {
+                         document.getElementById('fullname').value = line;
+                    }
+
+                    // DOB
+                    if (lowerLine.includes("sinh") || lowerLine.includes("birth")) {
+                        const dateMatch = line.match(/\d{2}\/\d{2}\/\d{4}/);
+                        if (dateMatch) {
+                            document.getElementById('dob').value = convertOcrDateToISO(dateMatch[0]);
+                        } else if (i + 1 < lines.length) {
+                             const nextMatch = lines[i+1].match(/\d{2}\/\d{2}\/\d{4}/);
+                             if (nextMatch) document.getElementById('dob').value = convertOcrDateToISO(nextMatch[0]);
+                        }
+                    }
+                    
+                    // Address: "Nơi thường trú" OR "Nơi cư trú" (Old format & transitional)
+                    if (lowerLine.includes("thường trú") || lowerLine.includes("cư trú") || lowerLine.includes("residence")) {
+                         let addr = "";
+                         // Try to capture subsequent lines until we hit a date or "Có giá trị"
+                         for(let j=1; j<=3; j++) {
+                             if(i + j < lines.length) {
+                                 const nextLine = lines[i+j];
+                                 // Stop conditions for address
+                                 if(nextLine.includes("Có giá trị") || nextLine.includes("Date of expiry") || nextLine.match(/\d{2}\/\d{2}\/\d{4}/)) break;
+                                 addr += nextLine + ", ";
+                             }
+                         }
+                         addr = addr.replace(/,$/, '').trim();
+                         if (addr.length > 5) document.getElementById('address').value = addr;
+                    }
+                }
+            } 
+            else if (side === 'back') {
+                // --- PARSE BACK SIDE ---
+                
+                // 1. Issue Date
+                // Pattern 1: "Ngày 10 tháng 05 năm 2021"
+                const dateRegex = /ngày\s+(\d{1,2})\s+tháng\s+(\d{1,2})\s+năm\s+(\d{4})/i;
+                const match = text.match(dateRegex);
+                
+                if (match) {
+                    const day = match[1].padStart(2, '0');
+                    const month = match[2].padStart(2, '0');
+                    const year = match[3];
+                    document.getElementById('issueDate').value = `${year}-${month}-${day}`;
+                } else {
+                    // Pattern 2: "Date: 10/05/2021" or just finding a date on the right side
+                    const allDates = text.match(/\d{2}\/\d{2}\/\d{4}/g);
+                    if (allDates && allDates.length > 0) {
+                        // Usually the issue date is at the bottom right. 
+                        // If multiple dates (rare on back), pick the last one.
+                        document.getElementById('issueDate').value = convertOcrDateToISO(allDates[allDates.length - 1]);
+                    }
+                }
+
+                // 2. Address (Nơi cư trú) - NEW CĂN CƯỚC 2024
+                // Look for "Nơi cư trú" header
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    const lowerLine = line.toLowerCase();
+                    
+                    if (lowerLine.includes("nơi cư trú") || lowerLine.includes("place of residence")) {
+                        let addr = "";
+                        // Capture subsequent lines
+                        for (let j = 1; j < 5; j++) {
+                            if (i + j < lines.length) {
+                                const nextLine = lines[i+j].trim();
+                                const lowerNext = nextLine.toLowerCase();
+                                
+                                // Stop if we hit the next section (Birth reg or Ministry or Date)
+                                if (lowerNext.includes("nơi đăng ký khai sinh") || lowerNext.includes("place of birth") || lowerNext.includes("bộ công an")) {
+                                    break;
+                                }
+                                // Avoid capturing dates by mistake
+                                if (!nextLine.match(/\d{2}\/\d{2}\/\d{4}/)) {
+                                    addr += nextLine + ", ";
+                                }
+                            }
+                        }
+                        
+                        addr = addr.replace(/,$/, '').trim();
+                        if (addr.length > 5) {
+                            document.getElementById('address').value = addr;
+                            break; 
+                        }
+                    }
+                }
+
+                // 3. Issue Place
+                // Old Chip: "Cục trưởng Cục Cảnh sát..."
+                // New Chip: "BỘ CÔNG AN"
+                if (lowerText.includes("cục cảnh sát") || lowerText.includes("police")) {
+                    document.getElementById('issuePlace').value = "Cục Cảnh sát QLHC về TTXH";
+                } else if (lowerText.includes("bộ công an") || lowerText.includes("ministry of public security")) {
+                    document.getElementById('issuePlace').value = "BỘ CÔNG AN";
+                } else if (lowerText.includes("công an")) {
+                    const caMatch = text.match(/Công an\s+([^\n]+)/i);
+                    if (caMatch) document.getElementById('issuePlace').value = caMatch[0];
+                    else document.getElementById('issuePlace').value = "Công an Tỉnh/TP";
+                }
+            }
+        }
+
+        // --- RESET PAGE LOGIC ---
+        function resetPage() {
+            // Confirm with user to avoid accidental clicks
+            if(confirm("Bạn có chắc chắn muốn xóa hết thông tin để nhập lại từ đầu không?")) {
+                performReset();
+                showToast("Đã xóa trắng thông tin!", "info");
+            }
+        }
+
+        function performReset() {
+             // 1. Reset standard form fields
+            document.getElementById('employeeForm').reset();
+            
+            // 2. Explicitly clear file inputs
+            document.getElementById('file-front').value = "";
+            document.getElementById('file-back').value = "";
+
+            // 3. Reset Images
+            const resetImage = (side) => {
+                const img = document.getElementById(`img-${side}`);
+                const icon = document.querySelector(`#preview-box-${side} div:first-child`);
+                const loading = document.getElementById(`loading-${side}`);
+                
+                if(img) { img.src = ""; img.classList.add('hidden'); }
+                if(icon) { icon.classList.remove('hidden'); }
+                if(loading) { loading.classList.add('hidden'); loading.style.display = 'none'; }
+            };
+            resetImage('front');
+            resetImage('back');
+
+            // 4. Close scanner if running
+            if(isScanning) {
+                stopQrScanner();
+            }
+            
+            // Force reset selects to index 0 just in case
+            document.getElementById('company').selectedIndex = 0;
+            document.getElementById('supplier').selectedIndex = 0;
+
+            // 5. Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // --- SUBMIT TO N8N ---
+
+        async function submitForm(e) {
+            e.preventDefault();
+            
+            const btn = document.getElementById('submitBtn');
+            const originalBtnContent = btn.innerHTML;
+            
+            btn.disabled = true;
+            btn.innerHTML = `<div class="loader w-5 h-5 border-2 border-t-white border-transparent mr-2"></div> Đang gửi...`;
+
+            // Get Date Values
+            const dobVal = document.getElementById('dob').value;
+            const issueVal = document.getElementById('issueDate').value;
+            
+            // Get Image Base64 Data
+            const imgFront = document.getElementById('img-front').src;
+            const imgBack = document.getElementById('img-back').src;
+            
+            const cleanImgFront = (imgFront && imgFront.startsWith('data:')) ? imgFront : "";
+            const cleanImgBack = (imgBack && imgBack.startsWith('data:')) ? imgBack : "";
+
+            // Construct JSON Body - FLAT Structure as requested
+            const formData = {
+                company: document.getElementById('company').value,
+                supplier: document.getElementById('supplier').value,
+                fullname: document.getElementById('fullname').value,
+                cccd: document.getElementById('cccd').value,
+                dob: formatISOToDisplay(dobVal),
+                issueDate: formatISOToDisplay(issueVal),
+                issuePlace: document.getElementById('issuePlace').value,
+                address: document.getElementById('address').value,
+                phone: document.getElementById('phone').value,
+                // Add Images as separate fields
+                image_front: cleanImgFront,
+                image_back: cleanImgBack,
+                timestamp: new Date().toISOString()
+            };
+
+            try {
+                // REMOVED 'no-cors' to ensure Content-Type header is sent.
+                await fetch(N8N_WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                showToast("Đã gửi thông tin lên hệ thống!", "success");
+                performReset();
+
+            } catch (error) {
+                console.error("Webhook Error:", error);
+                if (error.message.includes('Failed to fetch')) {
+                     showToast("Lỗi CORS hoặc Mạng. Kiểm tra n8n đã bật CORS chưa.", "warning");
+                } else {
+                     showToast("Lỗi kết nối mạng.", "error");
+                }
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalBtnContent;
+            }
+        }
+
+        // --- UTILS ---
+        function showToast(message, type = "info") {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            let bgClass = "bg-gray-800";
+            let icon = '<i class="fa-solid fa-info-circle"></i>';
+            
+            if (type === "success") { bgClass = "bg-green-600"; icon = '<i class="fa-solid fa-check-circle"></i>'; }
+            if (type === "error") { bgClass = "bg-red-600"; icon = '<i class="fa-solid fa-exclamation-circle"></i>'; }
+            if (type === "warning") { bgClass = "bg-yellow-600"; icon = '<i class="fa-solid fa-exclamation-triangle"></i>'; }
+
+            toast.className = `${bgClass} text-white px-4 py-3 rounded-lg shadow-lg mb-3 flex items-center gap-3 text-sm transition-all duration-500 transform translate-y-10 opacity-0`;
+            toast.innerHTML = `${icon} <span>${message}</span>`;
+            
+            container.appendChild(toast);
+            
+            requestAnimationFrame(() => toast.classList.remove('translate-y-10', 'opacity-0'));
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-10');
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
